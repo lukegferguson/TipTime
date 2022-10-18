@@ -1,109 +1,80 @@
-/*
- * Copyright (C) 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.tiptime
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.TextView
 import com.example.tiptime.databinding.ActivityMainBinding
 import java.text.NumberFormat
 
-/**
- * Activity that displays a tip calculator.
- */
 class MainActivity : AppCompatActivity() {
 
-    // Binding object instance with access to the views in the activity_main.xml layout
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding //lateinit makes compiler initialize this variable before using it
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Inflate the layout XML file and return a binding object instance
         binding = ActivityMainBinding.inflate(layoutInflater)
-
-        // Set the content view of the Activity to be the root view of the layout
         setContentView(binding.root)
 
-        // Setup a click listener on the calculate button to calculate the tip
         binding.calculateButton.setOnClickListener { calculateTip() }
 
-        // Set up a key listener on the EditText field to listen for "enter" button presses
+        //key listener to close keyboard when enter is pressed in cost of service edit text field
         binding.costOfServiceEditText.setOnKeyListener { view, keyCode, _ ->
             handleKeyEvent(
                 view,
                 keyCode
             )
         }
+
     }
 
-    /**
-     * Calculates the tip based on the user input.
-     */
     private fun calculateTip() {
-        // Get the decimal value from the cost of service EditText field
-        val stringInTextField = binding.costOfServiceEditText.text.toString()
-        val cost = stringInTextField.toDoubleOrNull()
-
-        // If the cost is null or 0, then display 0 tip and exit this function early.
-        if (cost == null || cost == 0.0) {
-            displayTip(0.0)
-            return
+        //Take user input, convert to text, then to double.
+        val cost = binding.costOfServiceEditText.text.toString().toDoubleOrNull()
+        if (cost == null) {
+            displayAmounts(
+                0.0,
+                0.0
+            ) //reset tip result field to 0 if null value is entered so that the previous result does not linger
+            return //skip the rest of calculateTip() since it can't work on a null.
+            //cost_of_service TextView is already set to inputType="numberDecimal" so don't need to worry about non-number input
         }
-
-        // Get the tip percentage based on which radio button is selected
+        //create variable for tip percentage based on radio button selected
         val tipPercentage = when (binding.tipOptions.checkedRadioButtonId) {
             R.id.option_twenty_percent -> 0.20
             R.id.option_eighteen_percent -> 0.18
             else -> 0.15
         }
-
-        // Calculate the tip
         var tip = tipPercentage * cost
 
-        // If the switch for rounding up the tip toggled on (isChecked is true), then round up the
-        // tip. Otherwise do not change the tip value.
-        val roundUp = binding.roundUpSwitch.isChecked
-        if (roundUp) {
-            // Take the ceiling of the current tip, which rounds up to the next integer, and store
-            // the new value in the tip variable.
-            tip = kotlin.math.ceil(tip)
+        //built in math function for rounding up, awesome!
+        val totalCost = when (binding.roundingOptions.checkedRadioButtonId){
+            R.id.round_tip -> kotlin.math.ceil(tip) + cost
+            R.id.round_total -> kotlin.math.ceil(cost+tip)
+            else -> cost+tip
         }
 
-        // Display the formatted tip value onscreen
-        displayTip(tip)
+        displayAmounts((totalCost-cost), totalCost)
     }
 
-    /**
-     * Format the tip amount according to the local currency and display it onscreen.
-     * Example would be "Tip Amount: $10.00".
-     */
-    private fun displayTip(tip: Double) {
+    //helper function to format the currency then update the string resources and pass in the formatted currency
+    private fun displayAmounts(tip: Double, totalCost: Double) {
+        //built in formatting for currency, can easily change display with language/country
         val formattedTip = NumberFormat.getCurrencyInstance().format(tip)
+        val formattedCost = NumberFormat.getCurrencyInstance().format(totalCost)
+
+        //display formatted tip and total cost to user
         binding.tipResult.text = getString(R.string.tip_amount, formattedTip)
+        binding.totalWithTip.text = getString(R.string.total_with_tip, formattedCost)
     }
 
-    /**
-     * Key listener for hiding the keyboard when the "Enter" button is tapped.
-     */
-    private fun handleKeyEvent(view: View, keyCode: Int): Boolean {
+    private fun handleKeyEvent(
+        view: View,
+        keyCode: Int
+    ): Boolean { // listener to close soft keyboard when enter key is pressed
         if (keyCode == KeyEvent.KEYCODE_ENTER) {
             // Hide the keyboard
             val inputMethodManager =
@@ -113,4 +84,5 @@ class MainActivity : AppCompatActivity() {
         }
         return false
     }
+
 }
