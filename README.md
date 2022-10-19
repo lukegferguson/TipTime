@@ -1,6 +1,7 @@
-Tip Calculator ![app logo](/app/src/main/res/mipmap-xhdpi/ic_launcher.png) - lukegferguson style
+![app logo](/app/src/main/res/mipmap-xhdpi/ic_launcher.png)
+Tip Calculator - lukegferguson style
 =================================
-####[Google Codelab practice application TipTime](https://github.com/google-developer-training/android-basics-kotlin-tip-calculator-app-solution) with improvements, including:
+[Google Codelab practice application TipTime](https://github.com/google-developer-training/android-basics-kotlin-tip-calculator-app-solution) with improvements, including:
 
 + **Way** cooler color scheme
 + Display tip amount *and* total with tip
